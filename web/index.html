@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Viewer</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            max-width: 900px;
+            overflow-x: auto;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🔍 Order Lookup</h1>
+
+<input type="text" id="orderIdInput" placeholder="Enter Order UID..." />
+<button onclick="fetchOrder()">Get Order</button>
+
+<div id="result"></div>
+
+<script>
+    async function fetchOrder() {
+      const orderId = document.getElementById("orderIdInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!orderId) {
+        resultDiv.innerHTML = '<p class="error">❗ Please enter an order UID</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8080/orders/${orderId}`);
+        if (!response.ok) {
+          resultDiv.innerHTML = `<p class="error">❌ Error: ${response.status} ${response.statusText}</p>`;
+          return;
+        }
+
+        const data = await response.json();
+        resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (err) {
+        resultDiv.innerHTML = `<p class="error">🚨 Fetch failed: ${err.message}</p>`;
+      }
+    }
+</script>
+
+</body>
+</html>
