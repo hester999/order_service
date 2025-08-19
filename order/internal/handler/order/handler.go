@@ -83,15 +83,13 @@ func (o *OrderHandler) deliveryToDto(d *model.Delivery) *DeliveryDTO {
 		return nil
 	}
 	return &DeliveryDTO{
-		ID:       d.ID,
-		OrderUID: d.OrderUID,
-		Name:     d.Name,
-		Phone:    d.Phone,
-		ZIP:      d.ZIP,
-		City:     d.City,
-		Address:  d.Address,
-		Region:   d.Region,
-		Email:    d.Email,
+		Name:    d.Name,
+		Phone:   d.Phone,
+		ZIP:     d.ZIP,
+		City:    d.City,
+		Address: d.Address,
+		Region:  d.Region,
+		Email:   d.Email,
 	}
 }
 
@@ -100,14 +98,12 @@ func (o *OrderHandler) paymentToDto(p *model.Payment) *PaymentDTO {
 		return nil
 	}
 	return &PaymentDTO{
-		ID:           p.ID,
-		OrderUID:     p.OrderUID,
 		Transaction:  p.Transaction,
 		RequestID:    p.RequestID,
 		Currency:     p.Currency,
 		Provider:     p.Provider,
 		Amount:       p.Amount,
-		PaymentDT:    p.PaymentDT.Unix(), // преобразуем в timestamp
+		PaymentDT:    p.PaymentDT.Unix(),
 		Bank:         p.Bank,
 		DeliveryCost: p.DeliveryCost,
 		GoodsTotal:   p.GoodsTotal,
@@ -119,8 +115,6 @@ func (o *OrderHandler) itemsToDto(items []model.Item) []ItemDTO {
 	res := make([]ItemDTO, 0, len(items))
 	for _, i := range items {
 		res = append(res, ItemDTO{
-			ID:          i.ID,
-			OrderUID:    i.OrderUID,
 			ChrtID:      i.ChrtID,
 			TrackNumber: i.TrackNumber,
 			Price:       i.Price,

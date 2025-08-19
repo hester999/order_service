@@ -23,18 +23,82 @@ func NewOrderRepository(client *redis.Client) *OrderRepository {
 }
 
 func (o *OrderRepository) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
-	var data []byte
-	data, err := json.Marshal(order)
+	dto := OrderDTO{
+		OrderUID:          order.OrderUID,
+		TrackNumber:       order.TrackNumber,
+		Entry:             order.Entry,
+		Locale:            order.Locale,
+		InternalSignature: order.InternalSignature,
+		CustomerID:        order.CustomerID,
+		DeliveryService:   order.DeliveryService,
+		ShardKey:          order.ShardKey,
+		SMID:              order.SMID,
+		DateCreated:       order.DateCreated,
+		OOFShard:          order.OOFShard,
+	}
+
+	if order.Delivery != nil {
+		dto.Delivery = &DeliveryDTO{
+			ID:       order.Delivery.ID,
+			OrderUID: order.OrderUID,
+			Name:     order.Delivery.Name,
+			Phone:    order.Delivery.Phone,
+			ZIP:      order.Delivery.ZIP,
+			City:     order.Delivery.City,
+			Address:  order.Delivery.Address,
+			Region:   order.Delivery.Region,
+			Email:    order.Delivery.Email,
+		}
+	}
+
+	if order.Payment != nil {
+		dto.Payment = &PaymentDTO{
+			ID:           order.Payment.ID,
+			OrderUID:     order.OrderUID,
+			Transaction:  order.Payment.Transaction,
+			RequestID:    order.Payment.RequestID,
+			Currency:     order.Payment.Currency,
+			Provider:     order.Payment.Provider,
+			Amount:       order.Payment.Amount,
+			PaymentDT:    order.Payment.PaymentDT.Unix(),
+			Bank:         order.Payment.Bank,
+			DeliveryCost: order.Payment.DeliveryCost,
+			GoodsTotal:   order.Payment.GoodsTotal,
+			CustomFee:    order.Payment.CustomFee,
+		}
+	}
+
+	for _, item := range order.Items {
+		dto.Items = append(dto.Items, ItemDTO{
+			ID:          item.ID,
+			OrderUID:    order.OrderUID,
+			ChrtID:      item.ChrtID,
+			TrackNumber: item.TrackNumber,
+			Price:       item.Price,
+			RID:         item.RID,
+			Name:        item.Name,
+			Sale:        item.Sale,
+			Size:        item.Size,
+			TotalPrice:  item.TotalPrice,
+			NmID:        item.NmID,
+			Brand:       item.Brand,
+			Status:      item.Status,
+		})
+	}
+
+	data, err := json.Marshal(dto)
 	if err != nil {
 		log.Println(err)
 		return model.Order{}, err
 	}
-	key := "order:" + order.OrderUID
+
+	key := "order:" + dto.OrderUID
 	ok, err := o.client.SetNX(ctx, key, data, 2*time.Hour).Result()
 	if err != nil {
 		log.Println(err)
 		return model.Order{}, err
 	}
+
 	if !ok {
 		data, err = o.client.Get(ctx, key).Bytes()
 		if err != nil {
@@ -43,15 +107,9 @@ func (o *OrderRepository) CreateOrder(ctx context.Context, order model.Order) (m
 		}
 	}
 
-	var res model.Order
-	err = json.Unmarshal(data, &res)
-	if err != nil {
-		log.Println(err)
-		return model.Order{}, err
-	}
-	return res, nil
-
+	return order, nil
 }
+
 func (o *OrderRepository) GetOrderByOrderUID(ctx context.Context, id string) (model.Order, error) {
 	key := "order:" + id
 	data, err := o.client.Get(ctx, key).Bytes()

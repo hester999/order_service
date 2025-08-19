@@ -8,46 +8,9 @@ $3
 SET
 $25
 order:b563feb7b2b84b6test
-$1061
-{"OrderUID":"b563feb7b2b84b6test","TrackNumber":"WBILMTESTTRACK","Entry":"WBIL","Delivery":{"ID":"4874179c-0a32-43c7-8883-1bb9788b3abd","OrderUID":"b563feb7b2b84b6test","Name":"Test Testov","Phone":"+9720000000","ZIP":"2639809","City":"Kiryat Mozkin","Address":"Ploshad Mira 15","Region":"Kraiot","Email":"test@gmail.com"},"Payment":{"ID":"2effff3b-637e-4241-bd9f-3aa95797cc8d","OrderUID":"b563feb7b2b84b6test","Transaction":"b563feb7b2b84b6test","RequestID":"","Currency":"USD","Provider":"wbpay","Amount":1817,"PaymentDT":"2021-11-26T06:22:07Z","Bank":"alpha","DeliveryCost":1500,"GoodsTotal":317,"CustomFee":0},"Items":[{"ID":"b3d86bd4-de2b-46d6-ae09-7df0bce9b62f","OrderUID":"b563feb7b2b84b6test","ChrtID":9934930,"TrackNumber":"WBILMTESTTRACK","Price":453,"RID":"ab4219087a764ae0btest","Name":"Mascaras","Sale":30,"Size":"0","TotalPrice":317,"NmID":2389212,"Brand":"Vivienne Sabo","Status":202}],"Locale":"en","InternalSignature":"","CustomerID":"test","DeliveryService":"meest","ShardKey":"9","SMID":99,"DateCreated":"2021-11-26T06:22:19Z","OOFShard":"1"}
+$1069
+{"order_uid":"b563feb7b2b84b6test","track_number":"WBILMTESTTRACK","entry":"WBIL","delivery":{"id":"0c11de2e-e3a7-4376-b839-e721535bd163","order_uid":"b563feb7b2b84b6test","name":"Test Testov","phone":"+9720000000","zip":"2639809","city":"Kiryat Mozkin","address":"Ploshad Mira 15","region":"Kraiot","email":"test@gmail.com"},"payment":{"id":"3034cb62-c1f3-46b4-b5d6-0288e90c8bc6","order_uid":"b563feb7b2b84b6test","transaction":"b563feb7b2b84b6test","request_id":"","currency":"USD","provider":"wbpay","amount":1817,"payment_dt":1637907727,"bank":"alpha","delivery_cost":1500,"goods_total":317,"custom_fee":0},"items":[{"id":"edfc3610-5f23-4c0f-86c2-85d2eaafacde","order_uid":"b563feb7b2b84b6test","chrt_id":9934930,"track_number":"WBILMTESTTRACK","price":453,"rid":"ab4219087a764ae0btest","name":"Mascaras","sale":30,"size":"0","total_price":317,"nm_id":2389212,"brand":"Vivienne Sabo","status":202}],"locale":"en","internal_signature":"","customer_id":"test","delivery_service":"meest","shardkey":"9","sm_id":99,"date_created":"2021-11-26T06:22:19Z","oof_shard":"1"}
 $4
 PXAT
 $13
-1755477753736
-*2
-$3
-DEL
-$25
-order:b563feb7b2b84b6test
-*2
-$6
-SELECT
-$1
-0
-*5
-$3
-SET
-$25
-order:b563feb7b2b84b6test
-$1061
-{"OrderUID":"b563feb7b2b84b6test","TrackNumber":"WBILMTESTTRACK","Entry":"WBIL","Delivery":{"ID":"af39c0ec-b304-4789-90f8-6eaa72c61f11","OrderUID":"b563feb7b2b84b6test","Name":"Test Testov","Phone":"+9720000000","ZIP":"2639809","City":"Kiryat Mozkin","Address":"Ploshad Mira 15","Region":"Kraiot","Email":"test@gmail.com"},"Payment":{"ID":"11ce4dc8-aaaa-491a-aa02-88a8b1d434a9","OrderUID":"b563feb7b2b84b6test","Transaction":"b563feb7b2b84b6test","RequestID":"","Currency":"USD","Provider":"wbpay","Amount":1817,"PaymentDT":"2021-11-26T06:22:07Z","Bank":"alpha","DeliveryCost":1500,"GoodsTotal":317,"CustomFee":0},"Items":[{"ID":"58e29028-f1f3-4639-91d3-1085d08152d2","OrderUID":"b563feb7b2b84b6test","ChrtID":9934930,"TrackNumber":"WBILMTESTTRACK","Price":453,"RID":"ab4219087a764ae0btest","Name":"Mascaras","Sale":30,"Size":"0","TotalPrice":317,"NmID":2389212,"Brand":"Vivienne Sabo","Status":202}],"Locale":"en","InternalSignature":"","CustomerID":"test","DeliveryService":"meest","ShardKey":"9","SMID":99,"DateCreated":"2021-11-26T06:22:19Z","OOFShard":"1"}
-$4
-PXAT
-$13
-1755520944176
-*2
-$3
-DEL
-$25
-order:b563feb7b2b84b6test
-*5
-$3
-SET
-$25
-order:b563feb7b2b84b6test
-$1061
-{"OrderUID":"b563feb7b2b84b6test","TrackNumber":"WBILMTESTTRACK","Entry":"WBIL","Delivery":{"ID":"af39c0ec-b304-4789-90f8-6eaa72c61f11","OrderUID":"b563feb7b2b84b6test","Name":"Test Testov","Phone":"+9720000000","ZIP":"2639809","City":"Kiryat Mozkin","Address":"Ploshad Mira 15","Region":"Kraiot","Email":"test@gmail.com"},"Payment":{"ID":"11ce4dc8-aaaa-491a-aa02-88a8b1d434a9","OrderUID":"b563feb7b2b84b6test","Transaction":"b563feb7b2b84b6test","RequestID":"","Currency":"USD","Provider":"wbpay","Amount":1817,"PaymentDT":"2021-11-26T06:22:07Z","Bank":"alpha","DeliveryCost":1500,"GoodsTotal":317,"CustomFee":0},"Items":[{"ID":"58e29028-f1f3-4639-91d3-1085d08152d2","OrderUID":"b563feb7b2b84b6test","ChrtID":9934930,"TrackNumber":"WBILMTESTTRACK","Price":453,"RID":"ab4219087a764ae0btest","Name":"Mascaras","Sale":30,"Size":"0","TotalPrice":317,"NmID":2389212,"Brand":"Vivienne Sabo","Status":202}],"Locale":"en","InternalSignature":"","CustomerID":"test","DeliveryService":"meest","ShardKey":"9","SMID":99,"DateCreated":"2021-11-26T06:22:19Z","OOFShard":"1"}
-$4
-PXAT
-$13
-1755539997231
+1755614869441
