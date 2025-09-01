@@ -34,6 +34,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 }
 
 func (o *OrderRepo) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
+
 	query := `INSERT INTO orders (
 		order_uid, track_number, entry, locale, internal_signature, 
 		customer_id, delivery_service, shard_key, sm_id, date_created, oof_shard

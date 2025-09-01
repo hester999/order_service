@@ -32,6 +32,7 @@ type dto struct {
 }
 
 func (d *DeliveryRepo) CreateDelivery(ctx context.Context, delivery model.Delivery) (model.Delivery, error) {
+
 	query := `INSERT INTO deliveries (id,order_uid, name,phone,zip,city,address,region,email) 
 			  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
 			  ON CONFLICT (order_uid) DO UPDATE SET

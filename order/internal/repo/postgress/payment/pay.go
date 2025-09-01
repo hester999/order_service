@@ -38,6 +38,7 @@ type dto struct {
 }
 
 func (p *PaymentRepo) CreatePayment(ctx context.Context, payment model.Payment) (model.Payment, error) {
+
 	query := `INSERT INTO payments (
 		id, order_uid, transaction, request_id, currency, provider,
 		amount, payment_dt, bank, delivery_cost, goods_total, custom_fee

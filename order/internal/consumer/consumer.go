@@ -85,7 +85,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 				Status:      i.Status,
 			})
 		}
-
+		log.Println("Order:", order.OrderUID)
 		if _, err := c.usecases.CreateOrder(ctx, order); err != nil {
 			log.Println("Error creating order:", err)
 			continue
