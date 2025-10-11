@@ -130,6 +130,5 @@ func (i *ItemRepo) GetItemsByOrderUID(ctx context.Context, orderUID string) ([]m
 			Status:      r.Status,
 		})
 	}
-	log.Println("repo item", items)
 	return items, nil
 }

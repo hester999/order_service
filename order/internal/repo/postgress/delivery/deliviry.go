@@ -81,7 +81,6 @@ func (d *DeliveryRepo) GetDeliveryByOrderUID(ctx context.Context, orderUID strin
 		return model.Delivery{}, err
 	}
 
-	log.Println("repo delivery", tmp)
 	return model.Delivery{
 		ID:       tmp.ID,
 		OrderUID: tmp.OrderUID,

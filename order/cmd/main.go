@@ -42,19 +42,18 @@ func main() {
 	cache := redis.NewRedisRepo(client)
 	storage := postgress.NewPostgresStorage(conn)
 
-	usecase := uc.NewFullOrder(storage, cache)
-	handler := order.NewOrderHandler(usecase)
+	use := uc.NewFullOrder(storage, cache)
+	handler := order.NewOrderHandler(use)
 
-	err = usecase.PreloadCache(ctx)
+	err = use.PreloadCache(ctx)
 	if err != nil {
-		if errors.Is(err, apperr.ErrNotFound) {
-		} else {
+		if !errors.Is(err, apperr.ErrNotFound) {
 			log.Fatal(err)
 		}
 	}
 
 	reader := kf.NewKafkaReader(kafka.NewReader(cfg))
-	consumer := consumer.NewConsumer(reader, usecase)
+	cons := consumer.NewConsumer(reader, use)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/orders/{id}", handler.GetOrder).Methods("GET")
@@ -62,7 +61,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := consumer.Start(ctx); err != nil {
+		if err := cons.Start(ctx); err != nil {
 			panic(err)
 		}
 	}()

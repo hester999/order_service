@@ -61,7 +61,7 @@ func (p *PaymentRepo) CreatePayment(ctx context.Context, payment model.Payment) 
 
 	var tmp dto
 
-	err := p.DB.GetContext(ctx, &tmp, query,
+	err := p.db.GetContext(ctx, &tmp, query,
 		payment.ID,
 		payment.OrderUID,
 		payment.Transaction,
@@ -104,7 +104,7 @@ func (p *PaymentRepo) GetPaymentsByOrderUID(ctx context.Context, orderUID string
 
 	var tmp dto
 
-	err := p.DB.GetContext(ctx, &tmp, query, orderUID)
+	err := p.db.GetContext(ctx, &tmp, query, orderUID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.Payment{}, apperr.ErrNotFound

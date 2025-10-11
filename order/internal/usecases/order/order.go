@@ -18,6 +18,7 @@ func NewFullOrder(db Storage, cache CacheStorage) *FullOrder {
 }
 
 func (f *FullOrder) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
+
 	err := f.initDelivery(order.Delivery, order.OrderUID)
 	if err != nil {
 		log.Println(err)
@@ -118,6 +119,7 @@ func (f *FullOrder) GetOrder(ctx context.Context, id string) (model.Order, error
 		return res, nil
 	}
 
+	log.Println("get data from database")
 	resOrder, err := f.db.GetOrderByOrderUID(ctx, id)
 	if err != nil {
 		return model.Order{}, err
@@ -138,9 +140,7 @@ func (f *FullOrder) GetOrder(ctx context.Context, id string) (model.Order, error
 	if err != nil {
 		return model.Order{}, err
 	}
-	log.Println("uc:", resDelivery)
-	log.Println("uc:", resPayment)
-	log.Println("uc:", items)
+
 	result := model.Order{
 		OrderUID:          resOrder.OrderUID,
 		TrackNumber:       resOrder.TrackNumber,
@@ -158,14 +158,14 @@ func (f *FullOrder) GetOrder(ctx context.Context, id string) (model.Order, error
 		OOFShard:          resOrder.OOFShard,
 	}
 	_, _ = f.cache.CreateOrder(ctx, result)
-	log.Println("uc:", result)
+	log.Println("cache order data")
 	return result, nil
 }
 
 func (f *FullOrder) PreloadCache(ctx context.Context) error {
 	orders, err := f.db.GetAllOrders(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Println("Preload empty", err)
 		return err
 	}
 

@@ -1,8 +1,10 @@
-package order
+package dto
 
 import "time"
 
 type ItemDTO struct {
+	ID          string `json:"id,omitempty"`
+	OrderUID    string `json:"order_uid,omitempty"`
 	ChrtID      int    `json:"chrt_id"`
 	TrackNumber string `json:"track_number"`
 	Price       int    `json:"price"`
@@ -17,16 +19,20 @@ type ItemDTO struct {
 }
 
 type DeliveryDTO struct {
-	Name    string `json:"name"`
-	Phone   string `json:"phone"`
-	ZIP     string `json:"zip"`
-	City    string `json:"city"`
-	Address string `json:"address"`
-	Region  string `json:"region"`
-	Email   string `json:"email"`
+	ID       string `json:"id,omitempty"`
+	OrderUID string `json:"order_uid,omitempty"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	ZIP      string `json:"zip"`
+	City     string `json:"city"`
+	Address  string `json:"address"`
+	Region   string `json:"region"`
+	Email    string `json:"email"`
 }
 
 type PaymentDTO struct {
+	ID           string `json:"id,omitempty"`
+	OrderUID     string `json:"order_uid,omitempty"`
 	Transaction  string `json:"transaction"`
 	RequestID    string `json:"request_id"`
 	Currency     string `json:"currency"`
