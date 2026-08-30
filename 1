@@ -1,259 +1,184 @@
 package main
 
 import (
-        "archive/tar"
-        "encoding/json"
-        "fmt"
-        "io"
-        "log"
-        "os"
-        "path/filepath"
-        "strings"
-        "time"
-
-        clamd "github.com/bchisham/go-clamd"
+	"archive/tar"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-type ScanResult struct {
-        Path       string `json:"path"`
-        IsInfected bool   `json:"is_infected"`
-        VirusName  string `json:"virus_name,omitempty"`
-        Error      string `json:"error,omitempty"`
-}
-
-type ScanReport struct {
-        StartTime  time.Time    `json:"start_time"`
-        EndTime    time.Time    `json:"end_time"`
-        TotalFiles int          `json:"total_files"`
-        Infected   int          `json:"infected"`
-        Clean      int          `json:"clean"`
-        Errors     int          `json:"errors"`
-        Results    []ScanResult `json:"results"`
-}
-
 func main() {
-        tarPath := `D:\projects\GO\harbor\test\nginx.tar`
+	e := newExtractor(10, 10000)
+	root := "D:\\projects\\GO\\harbor\\test\\nginx.tar"
+	outDir, err := e.unpackRecursive(root)
+	if err != nil {
+		log.Fatalf("unpack failed: %v", err)
+	}
 
-        conn := clamd.NewClamd("tcp://127.0.0.1:3310")
-        if err := conn.Ping(); err != nil {
-                log.Fatalf("clamav is not responding: %v", err)
-        }
-
-        workDir, err := os.MkdirTemp("D:\\projects\\GO\\harbor\\test\\tree", "harbor-av-*")
-        if err != nil {
-                log.Fatalf("create work dir: %v", err)
-        }
-        defer func() {
-                if removeErr := os.RemoveAll(workDir); removeErr != nil {
-                        log.Printf("cleanup work dir: %v", removeErr)
-                }
-        }()
-
-        extractDir := filepath.Join(workDir, "extract")
-        if err := os.MkdirAll(extractDir, 0o755); err != nil {
-                log.Fatalf("create extract dir: %v", err)
-        }
-
-        report := ScanReport{StartTime: time.Now()}
-
-        if err := unpackTarFile(tarPath, extractDir); err != nil {
-                log.Fatalf("unpack archive: %v", err)
-        }
-
-        if err := unpackNestedTars(extractDir); err != nil {
-                log.Fatalf("unpack nested archives: %v", err)
-        }
-
-        report, err = scanTree(conn, extractDir, report)
-        if err != nil {
-                log.Fatalf("scan files: %v", err)
-        }
-
-        report.EndTime = time.Now()
-
-        out, err := json.MarshalIndent(report, "", "  ")
-        if err != nil {
-                log.Fatalf("marshal report: %v", err)
-        }
-        fmt.Println(string(out))
-
-        if report.Infected > 0 {
-                log.Fatalf("virus found, upload rejected")
-        }
-
-        fmt.Println("archive is clean, upload can continue")
+	fmt.Println(outDir)
 }
 
-func unpackTarFile(srcPath, dstDir string) error {
-        f, err := os.Open(srcPath)
-        if err != nil {
-                return err
-        }
-        defer f.Close()
-
-        return unpackTarReader(f, dstDir)
+type Extractor struct {
+	deep      int
+	maxFiles  int
+	extracted int
 }
 
-func unpackTarReader(r io.Reader, dstDir string) error {
-        tr := tar.NewReader(r)
-
-        for {
-                hdr, err := tr.Next()
-                if err == io.EOF {
-                        return nil
-                }
-                if err != nil {
-                        return err
-                }
-
-                targetPath := filepath.Join(dstDir, filepath.Clean(hdr.Name))
-                if !strings.HasPrefix(targetPath, dstDir+string(os.PathSeparator)) && targetPath != dstDir {
-                        return fmt.Errorf("archive contains invalid path: %s", hdr.Name)
-                }
-
-                switch hdr.Typeflag {
-                case tar.TypeDir:
-                        if err := os.MkdirAll(targetPath, 0o755); err != nil {
-                                return err
-                        }
-                case tar.TypeReg, tar.TypeRegA:
-                        if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
-                                return err
-                        }
-
-                        out, err := os.Create(targetPath)
-                        if err != nil {
-                                return err
-                        }
-
-                        _, copyErr := io.Copy(out, tr)
-                        closeErr := out.Close()
-                        if copyErr != nil {
-                                return copyErr
-                        }
-                        if closeErr != nil {
-                                return closeErr
-                        }
-                }
-        }
+func newExtractor(deep, maxFiles int) *Extractor {
+	return &Extractor{deep: deep, maxFiles: maxFiles}
 }
 
-func unpackNestedTars(root string) error {
-        return filepath.WalkDir(root, func(path string, d os.DirEntry, walkErr error) error {
-                if walkErr != nil {
-                        return walkErr
-                }
-                if d.IsDir() {
-                        return nil
-                }
-
-                if !strings.HasSuffix(strings.ToLower(d.Name()), ".tar") {
-                        return nil
-                }
-
-                nestedDir := strings.TrimSuffix(path, filepath.Ext(path))
-                if err := os.MkdirAll(nestedDir, 0o755); err != nil {
-                        return err
-                }
-
-                if err := unpackTarFile(path, nestedDir); err != nil {
-                        return fmt.Errorf("unpack nested tar %s: %w", path, err)
-                }
-
-                return unpackNestedTars(nestedDir)
-        })
+func (e *Extractor) unpackRecursive(srcPath string) (string, error) {
+	return e.unpackRecursiveDepth(srcPath, e.deep)
 }
 
-func scanTree(conn *clamd.Clamd, root string, report ScanReport) (ScanReport, error) {
-        err := filepath.WalkDir(root, func(path string, d os.DirEntry, walkErr error) error {
-                if walkErr != nil {
-                        report.Errors++
-                        report.Results = append(report.Results, ScanResult{
-                                Path:  path,
-                                Error: walkErr.Error(),
-                        })
-                        return nil
-                }
-                if d.IsDir() {
-                        return nil
-                }
+func (e *Extractor) unpackRecursiveDepth(srcPath string, depth int) (string, error) {
+	info, err := os.Stat(srcPath)
+	if err != nil {
+		return "", err
+	}
+	if info.IsDir() {
+		return srcPath, nil
+	}
 
-                report.TotalFiles++
+	if !isTarFile(srcPath) {
+		return "", fmt.Errorf("unsupported file type: %s", srcPath)
+	}
 
-                results, scanErr := conn.ScanFile(path)
-                if scanErr != nil {
-                        if isCleanScanError(scanErr) {
-                                report.Clean++
-                                report.Results = append(report.Results, ScanResult{
-                                        Path: path,
-                                })
-                                return nil
-                        }
+	outDir := strings.TrimSuffix(srcPath, filepath.Ext(srcPath))
+	if outDir == srcPath {
+		outDir = srcPath + "_unpacked"
+	}
 
-                        report.Errors++
-                        report.Results = append(report.Results, ScanResult{
-                                Path:  path,
-                                Error: scanErr.Error(),
-                        })
-                        return nil
-                }
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		return "", err
+	}
 
-                foundResult := false
-                for res := range results {
-                        foundResult = true
-                        if isCleanScanErrorText(res.Description) {
-                                report.Clean++
-                                report.Results = append(report.Results, ScanResult{
-                                        Path: path,
-                                })
-                                continue
-                        }
+	if err := e.unpackTarFile(srcPath, outDir); err != nil {
+		return "", err
+	}
 
-                        switch res.Status {
-                        case clamd.RES_FOUND:
-                                report.Infected++
-                                report.Results = append(report.Results, ScanResult{
-                                        Path:       path,
-                                        IsInfected: true,
-                                        VirusName:  res.Description,
-                                })
-                        case clamd.RES_OK:
-                                report.Clean++
-                                report.Results = append(report.Results, ScanResult{
-                                        Path: path,
-                                })
-                        default:
-                                report.Errors++
-                                report.Results = append(report.Results, ScanResult{
-                                        Path:  path,
-                                        Error: res.Description,
-                                })
-                        }
-                }
+	if depth <= 0 {
+		return outDir, nil
+	}
 
-                if !foundResult {
-                        report.Clean++
-                        report.Results = append(report.Results, ScanResult{
-                                Path: path,
-                        })
-                }
+	if err := e.unpackNestedTars(outDir, depth-1); err != nil {
+		return "", err
+	}
 
-                return nil
-        })
-
-        return report, err
+	return outDir, nil
 }
 
-func isCleanScanError(err error) bool {
-        if err == nil {
-                return false
-        }
+func (e *Extractor) unpackTarFile(srcPath, dstDir string) error {
+	f, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
-        return isCleanScanErrorText(err.Error())
+	return e.unpackTarReader(f, dstDir)
 }
 
-func isCleanScanErrorText(text string) bool {
-        msg := strings.ToLower(text)
-        return strings.Contains(msg, "no matches") ||
-                strings.Contains(msg, "regex had no matches")
+func (e *Extractor) unpackTarReader(r io.Reader, dstDir string) error {
+	tr := tar.NewReader(r)
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		targetPath := filepath.Join(dstDir, filepath.Clean(hdr.Name))
+		if !strings.HasPrefix(targetPath, dstDir+string(os.PathSeparator)) && targetPath != dstDir {
+			return fmt.Errorf("archive contains invalid path: %s", hdr.Name)
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if err := e.bumpFiles(1); err != nil {
+				return err
+			}
+			if err := os.MkdirAll(targetPath, 0o755); err != nil {
+				return err
+			}
+		case tar.TypeReg, tar.TypeRegA:
+			if err := e.bumpFiles(1); err != nil {
+				return err
+			}
+			if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
+				return err
+			}
+
+			out, err := os.Create(targetPath)
+			if err != nil {
+				return err
+			}
+
+			_, copyErr := io.Copy(out, tr)
+			closeErr := out.Close()
+			if copyErr != nil {
+				return copyErr
+			}
+			if closeErr != nil {
+				return closeErr
+			}
+		}
+	}
+}
+
+func (e *Extractor) bumpFiles(n int) error {
+	if e.maxFiles <= 0 {
+		return nil
+	}
+
+	e.extracted += n
+	if e.extracted > e.maxFiles {
+		return fmt.Errorf("archive is too wide: extracted files limit exceeded (%d > %d)", e.extracted, e.maxFiles)
+	}
+
+	return nil
+}
+
+func (e *Extractor) unpackNestedTars(root string, depth int) error {
+	return filepath.WalkDir(root, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		if !isTarFile(path) {
+			return nil
+		}
+
+		nestedDir := strings.TrimSuffix(path, filepath.Ext(path))
+		if nestedDir == path {
+			nestedDir = path + "_unpacked"
+		}
+
+		if err := os.MkdirAll(nestedDir, 0o755); err != nil {
+			return err
+		}
+
+		if err := e.unpackTarFile(path, nestedDir); err != nil {
+			return fmt.Errorf("unpack nested tar %s: %w", path, err)
+		}
+
+		if depth <= 0 {
+			return nil
+		}
+
+		return e.unpackNestedTars(nestedDir, depth-1)
+	})
+}
+
+func isTarFile(path string) bool {
+	return strings.EqualFold(filepath.Ext(path), ".tar")
 }
